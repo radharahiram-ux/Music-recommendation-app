@@ -59,62 +59,159 @@ A **content-based music recommendation system** that analyzes song lyrics using 
 
 ---
 
-## 🔬 System Architecture
+## 🗺️ Project Mind Map
 
+```mermaid
+mindmap
+  root((🎵 Music<br/>Recommender))
+    📦 Data
+      Kaggle API
+        57650 Songs
+        artist / song / text
+      10K Random Sample
+        drop link column
+        reset index
+    🧹 Preprocessing
+      NLTK
+        punkt tokenizer
+        english stopwords
+      regex
+        strip non-alpha chars
+      Lowercase
+      Join cleaned tokens
+    📐 Vectorization
+      TF-IDF
+        max_features 5000
+        sparse matrix
+        10K × 5K shape
+    🔗 Similarity
+      Cosine Similarity
+        10K × 10K matrix
+        pairwise scores
+        range 0 to 1
+    🎯 Recommender
+      Input song name
+      Lookup index
+      Sort by score desc
+      Skip self match
+      Return Top 5
+    🖥️ Frontend
+      Streamlit UI
+        text input
+        results table
+      WordCloud
+        matplotlib
+        frequency viz
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                     🎵 MUSIC RECOMMENDER PIPELINE               │
-└─────────────────────────────────────────────────────────────────┘
 
-  📦 Kaggle Dataset          🎲 10K Random Sample
-  (57,650 songs)    ──────►  (for performance)
-       │                            │
-       ▼                            ▼
-  ┌─────────────────────────────────────────┐
-  │           🧹 NLTK PREPROCESSING         │
-  │  • Strip special chars  (regex)         │
-  │  • Lowercase conversion                 │
-  │  • word_tokenize()                      │
-  │  • Remove English stopwords             │
-  └──────────────────┬──────────────────────┘
-                     │
-                     ▼
-  ┌─────────────────────────────────────────┐
-  │         📐 TF-IDF VECTORIZATION         │
-  │  TfidfVectorizer(max_features=5000)     │
-  │  Output: sparse matrix [10K × 5K]      │
-  └──────────────────┬──────────────────────┘
-                     │
-                     ▼
-  ┌─────────────────────────────────────────┐
-  │         🔗 COSINE SIMILARITY            │
-  │  cosine_similarity(tfidf, tfidf)        │
-  │  Output: dense matrix [10K × 10K]      │
-  └──────────────────┬──────────────────────┘
-                     │
-                     ▼
-  ┌─────────────────────────────────────────┐
-  │         🎯 RECOMMENDATION ENGINE        │
-  │  Input:  song name (string)             │
-  │  Lookup: index in dataframe             │
-  │  Sort:   similarity scores desc         │
-  │  Return: Top-N artist + song names      │
-  └─────────────────────────────────────────┘
+---
+
+## 🔬 Pipeline Flow Graph
+
+```mermaid
+flowchart TD
+    A([🗂️ Kaggle Dataset\n57,650 Songs]) --> B[📥 Download via\nKaggle API]
+    B --> C[🎲 Random Sample\n10,000 Songs]
+    C --> D[🗑️ Drop link column\nReset index]
+    D --> E{🧹 NLTK\nPreprocessing}
+
+    E --> E1[Strip special chars\nvia regex]
+    E --> E2[Lowercase\nconversion]
+    E --> E3[word_tokenize\ninto tokens]
+    E --> E4[Remove English\nstopwords]
+
+    E1 & E2 & E3 & E4 --> F[📐 TF-IDF Vectorizer\nmax_features = 5000]
+
+    F --> G[🔢 Sparse Matrix\n10,000 × 5,000]
+    G --> H[🔗 Cosine Similarity\nPairwise computation]
+    H --> I[📊 Similarity Matrix\n10,000 × 10,000]
+
+    I --> J[/🎤 Input: Song Name/]
+    J --> K{Song in\ndataset?}
+    K -- ❌ No --> L([⚠️ Not Found Message])
+    K -- ✅ Yes --> M[🔍 Lookup row index]
+    M --> N[📈 Sort by similarity\nscore descending]
+    N --> O[⏭️ Skip index 0\nself-match]
+    O --> P([🎵 Top 5 Similar Songs\nartist + song name])
+
+    style A fill:#1a1a2e,color:#00ffa3,stroke:#00ffa3
+    style P fill:#1a1a2e,color:#00ffa3,stroke:#00ffa3
+    style L fill:#2d1b1b,color:#ff6b6b,stroke:#ff6b6b
+    style E fill:#1a1040,color:#a78bfa,stroke:#7b61ff
+    style F fill:#1a1040,color:#a78bfa,stroke:#7b61ff
+    style H fill:#1a1040,color:#a78bfa,stroke:#7b61ff
+    style K fill:#0d2d1a,color:#6ee7b7,stroke:#00ffa3
+```
+
+---
+
+## 🧩 Tech Stack Graph
+
+```mermaid
+graph LR
+    subgraph INPUT["📥 Data Layer"]
+        A1[🏆 Kaggle API] --> A2[(spotify_millsongdata.csv)]
+        A2 --> A3[pandas DataFrame]
+    end
+
+    subgraph NLP["🧹 NLP Layer"]
+        B1[re — regex cleaner]
+        B2[nltk — tokenizer]
+        B3[stopwords filter]
+        B1 --> B4[cleaned_text column]
+        B2 --> B4
+        B3 --> B4
+    end
+
+    subgraph ML["🤖 ML Layer"]
+        C1[TfidfVectorizer\nscikit-learn]
+        C2[cosine_similarity\nscikit-learn]
+        C1 --> C3[Sparse Matrix\n10K × 5K]
+        C3 --> C2
+        C2 --> C4[Similarity Grid\n10K × 10K]
+    end
+
+    subgraph APP["🖥️ App Layer"]
+        D1[⚡ Streamlit\ntext input]
+        D2[📊 Results Table]
+        D3[☁️ WordCloud +\nMatplotlib]
+    end
+
+    A3 --> NLP
+    B4 --> ML
+    C4 --> APP
+
+    style INPUT fill:#0a1628,stroke:#3b82f6,color:#93c5fd
+    style NLP fill:#0a1a0a,stroke:#22c55e,color:#86efac
+    style ML fill:#1a0a28,stroke:#a855f7,color:#d8b4fe
+    style APP fill:#1a0a0a,stroke:#ef4444,color:#fca5a5
+```
+
+---
+
+## 🔁 Recommendation Logic Graph
+
+```mermaid
+graph TD
+    Q([🎤 Query: Song Name]) --> R1[Normalize to lowercase]
+    R1 --> R2[Match against df song column]
+    R2 --> R3[Get integer index idx]
+    R3 --> R4[Slice row from\ncosine_sim matrix]
+    R4 --> R5[enumerate scores\nas idx-score pairs]
+    R5 --> R6[sort descending\nby score]
+    R6 --> R7[slice index 1 to top_n+1\nskip self at 0]
+    R7 --> R8[extract song_indices list]
+    R8 --> R9([🎵 df artist + song\niloc song_indices])
+
+    style Q fill:#0d2d20,color:#00ffa3,stroke:#00ffa3
+    style R9 fill:#0d2d20,color:#00ffa3,stroke:#00ffa3
+    style R4 fill:#1a1040,color:#c4b5fd,stroke:#7b61ff
+    style R6 fill:#1a1040,color:#c4b5fd,stroke:#7b61ff
 ```
 
 ---
 
 ## 🚀 Quick Start
-
-<details>
-<summary><b>📋 Prerequisites</b></summary>
-<br/>
-
-```
-Python 3.7+
-Kaggle account (for dataset download)
-```
-</details>
 
 <details>
 <summary><b>⚙️ Step 1 — Clone the repo</b></summary>
@@ -134,16 +231,8 @@ cd music-recommendation-app-python
 pip install -r requirements.txt
 ```
 
-**requirements.txt:**
 ```
-pandas
-numpy
-scikit-learn
-nltk
-wordcloud
-matplotlib
-streamlit
-kaggle
+pandas / numpy / scikit-learn / nltk / wordcloud / matplotlib / streamlit / kaggle
 ```
 </details>
 
@@ -152,183 +241,22 @@ kaggle
 <br/>
 
 > Login to Kaggle → Profile Icon → **Settings** → **API** → **Create New Token**
-> This downloads `kaggle.json`
 
 ```bash
-# Linux / macOS
 mkdir ~/.kaggle
 cp kaggle.json ~/.kaggle/
 chmod 600 ~/.kaggle/kaggle.json
-
-# Windows (PowerShell)
-mkdir $env:USERPROFILE\.kaggle
-Copy-Item kaggle.json $env:USERPROFILE\.kaggle\
 ```
 </details>
 
 <details>
-<summary><b>📥 Step 4 — Download the dataset</b></summary>
+<summary><b>📥 Step 4 — Download dataset + Run</b></summary>
 <br/>
 
 ```bash
 kaggle datasets download notshrirang/spotify-million-song-dataset
 unzip spotify-million-song-dataset.zip
-```
-</details>
-
-<details>
-<summary><b>▶️ Step 5 — Run the app</b></summary>
-<br/>
-
-```bash
 streamlit run app.py
-```
-
-App opens at → **`http://localhost:8501`**
-</details>
-
----
-
-## 🧠 Core Code
-
-<details open>
-<summary><b>🧹 Text Preprocessing</b></summary>
-<br/>
-
-```python
-import re
-import nltk
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-
-nltk.download('punkt')
-nltk.download('stopwords')
-
-stop_words = set(stopwords.words('english'))
-
-def preprocess_text(text):
-    # Remove special characters and numbers
-    text = re.sub(r"[^a-zA-Z\s]", "", text)
-    # Convert to lowercase
-    text = text.lower()
-    # Tokenize
-    tokens = word_tokenize(text)
-    # Remove stopwords
-    tokens = [word for word in tokens if word not in stop_words]
-    return " ".join(tokens)
-
-# Apply to all lyrics
-df['cleaned_text'] = df['text'].apply(preprocess_text)
-```
-</details>
-
-<details open>
-<summary><b>📐 TF-IDF + Cosine Similarity</b></summary>
-<br/>
-
-```python
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-
-# Vectorize
-tfidf_vectorizer = TfidfVectorizer(max_features=5000)
-tfidf_matrix    = tfidf_vectorizer.fit_transform(df['cleaned_text'])
-
-# Compute similarity (10K x 10K matrix)
-cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
-```
-</details>
-
-<details open>
-<summary><b>🎯 Recommendation Function</b></summary>
-<br/>
-
-```python
-def recommend_songs(song_name, cosine_sim=cosine_sim, df=df, top_n=5):
-    # Find song index (case-insensitive)
-    idx = df[df['song'].str.lower() == song_name.lower()].index
-    if len(idx) == 0:
-        return "Song not found in the dataset!"
-    idx = idx[0]
-
-    # Sort by similarity score, skip index 0 (self-match)
-    sim_scores = list(enumerate(cosine_sim[idx]))
-    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-    sim_scores = sim_scores[1:top_n + 1]
-
-    # Return artist + song name
-    song_indices = [i[0] for i in sim_scores]
-    return df[['artist', 'song']].iloc[song_indices]
-```
-</details>
-
-<details>
-<summary><b>🖥️ Full Streamlit App (app.py)</b></summary>
-<br/>
-
-```python
-import streamlit as st
-import pandas as pd
-import re
-import nltk
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-from wordcloud import WordCloud
-import matplotlib.pyplot as plt
-
-st.set_page_config(page_title="🎵 Music Recommender", layout="wide")
-st.title("🎵 Music Recommendation System")
-st.markdown("*Find songs with similar lyrics — powered by TF-IDF & Cosine Similarity*")
-
-@st.cache_data
-def load_and_process():
-    df = pd.read_csv("spotify_millsongdata.csv")
-    df = df.sample(10000).drop('link', axis=1).reset_index(drop=True)
-
-    nltk.download('punkt', quiet=True)
-    nltk.download('stopwords', quiet=True)
-    stop_words = set(stopwords.words('english'))
-
-    def clean(text):
-        text = re.sub(r"[^a-zA-Z\s]", "", text).lower()
-        tokens = word_tokenize(text)
-        return " ".join([w for w in tokens if w not in stop_words])
-
-    df['cleaned_text'] = df['text'].apply(clean)
-    tfidf = TfidfVectorizer(max_features=5000).fit_transform(df['cleaned_text'])
-    sim   = cosine_similarity(tfidf, tfidf)
-    return df, sim
-
-with st.spinner("Loading model..."):
-    df, cosine_sim = load_and_process()
-
-col1, col2 = st.columns([2, 1])
-
-with col1:
-    song_input = st.text_input("Enter a song name:", placeholder="e.g. For The First Time")
-    if song_input:
-        idx = df[df['song'].str.lower() == song_input.lower()].index
-        if len(idx) == 0:
-            st.error("Song not found in the dataset!")
-        else:
-            idx = idx[0]
-            sim_scores = sorted(enumerate(cosine_sim[idx]), key=lambda x: x[1], reverse=True)[1:6]
-            result = df[['artist', 'song']].iloc[[i[0] for i in sim_scores]]
-            st.success(f"Top 5 recommendations for **{song_input}**")
-            st.dataframe(result, use_container_width=True)
-
-with col2:
-    st.subheader("☁️ Lyric Word Cloud")
-    sample = " ".join(df['cleaned_text'].sample(500))
-    wc = WordCloud(width=400, height=300, background_color='black',
-                   colormap='cool').generate(sample)
-    fig, ax = plt.subplots(figsize=(5, 3.5))
-    ax.imshow(wc, interpolation='bilinear')
-    ax.axis('off')
-    fig.patch.set_facecolor('black')
-    st.pyplot(fig)
 ```
 </details>
 
@@ -352,27 +280,6 @@ Input: "For The First Time"
 
 ---
 
-## 🛠️ Tech Stack
-
-<div align="center">
-<img src="https://skillicons.dev/icons?i=python,sklearn&theme=dark" height="48"/>
-</div>
-
-<br/>
-
-| Tool | Role |
-|------|------|
-| `pandas` | Data loading & manipulation |
-| `numpy` | Numerical operations |
-| `scikit-learn` | TF-IDF vectorization + cosine similarity |
-| `nltk` | Tokenization & stopword removal |
-| `wordcloud` | Lyric frequency visualization |
-| `matplotlib` | Plotting |
-| `streamlit` | Interactive web UI |
-| `kaggle` | Dataset download via API |
-
----
-
 ## 📁 Project Structure
 
 ```
@@ -385,24 +292,31 @@ music-recommendation-app-python/
 ├── 📖 README.md                   ← You are here
 │
 └── 📁 data/
-    └── spotify_millsongdata.csv   ← Downloaded via Kaggle API
+    └── spotify_millsongdata.csv
 ```
-
-> ⚠️ Add `kaggle.json` and `*.csv` to `.gitignore` — never commit credentials or large data files!
 
 ---
 
 ## 🔮 Roadmap
 
-- [x] Content-based filtering on lyrics
-- [x] TF-IDF + cosine similarity
-- [x] Streamlit frontend
-- [x] WordCloud visualization
-- [ ] Fuzzy song name matching
-- [ ] Spotify API — album art + audio preview
-- [ ] Sentence-transformer semantic embeddings
-- [ ] Hybrid model: lyrics + audio features (BPM, key, energy)
-- [ ] Docker deployment
+```mermaid
+timeline
+    title 🎵 Music Recommender — Development Roadmap
+    section Done ✅
+        v1.0 : Lyrics preprocessing with NLTK
+             : TF-IDF vectorization
+             : Cosine similarity engine
+             : Streamlit UI + WordCloud
+    section Upcoming 🚧
+        v1.1 : Fuzzy song name matching
+             : Better not-found handling
+        v1.2 : Spotify API integration
+             : Album art + audio preview
+    section Future 🔮
+        v2.0 : Sentence-transformer embeddings
+             : Hybrid lyrics + audio features
+             : Docker deployment
+```
 
 ---
 
