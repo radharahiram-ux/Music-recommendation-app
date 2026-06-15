@@ -1,4 +1,4 @@
-<div align="center">
+#<div align="center">
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=0:00ffa3,50:7b61ff,100:ff6b6b&height=220&section=header&text=🎵%20Music%20Recommender&fontSize=48&fontColor=ffffff&fontAlignY=40&desc=Lyrics-Based%20Content%20Filtering%20%7C%20TF-IDF%20%2B%20Cosine%20Similarity&descAlignY=62&descColor=cccccc&animation=fadeIn" width="100%"/>
 
